@@ -1,5 +1,6 @@
 package com.frafael.sensors.device.management.api.controller;
 
+import com.frafael.sensors.device.management.api.client.SensorMonitoringClient;
 import com.frafael.sensors.device.management.api.model.SensorInput;
 import com.frafael.sensors.device.management.api.model.SensorOutput;
 import com.frafael.sensors.device.management.common.IdGenerator;
@@ -32,6 +33,7 @@ import java.util.Objects;
 public class SensorController {
 
     private final SensorRepository sensorRepository;
+    private final SensorMonitoringClient sensorMonitoringClient;
 
 
     @GetMapping
@@ -84,26 +86,29 @@ public class SensorController {
         Sensor sensor = sensorRepository.findById(new SensorId(sensorId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         sensorRepository.delete(sensor);
+        sensorMonitoringClient.disableMonitoring(sensorId);
     }
 
     @PutMapping("{sensorId}/enable")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public SensorOutput enable(@PathVariable TSID sensorId) {
+    public void enable(@PathVariable TSID sensorId) {
         Sensor sensor = sensorRepository.findById(new SensorId(sensorId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         sensor.setEnabled(true);
-        sensor = sensorRepository.saveAndFlush(sensor);
-        return convertToModel(sensor);
+        sensorRepository.saveAndFlush(sensor);
+        sensorMonitoringClient.enaleMonitoring(sensorId);
+
     }
 
     @DeleteMapping("{sensorId}/enable")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public SensorOutput disable(@PathVariable TSID sensorId) {
+    public void disable(@PathVariable TSID sensorId) {
         Sensor sensor = sensorRepository.findById(new SensorId(sensorId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         sensor.setEnabled(false);
-        sensor = sensorRepository.saveAndFlush(sensor);
-        return convertToModel(sensor);
+        sensorRepository.saveAndFlush(sensor);
+        sensorMonitoringClient.disableMonitoring(sensorId);
+
     }
 
 
